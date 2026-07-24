@@ -1,0 +1,1360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FacePay — Biometric Payments</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --teal: #0D9488;
+    --teal-dark: #0F766E;
+    --blue: #1E40AF;
+    --blue-light: #3B82F6;
+    --green: #10B981;
+    --green-glow: #34D399;
+    --dark: #0F172A;
+    --card: rgba(255,255,255,0.07);
+    --white: #FFFFFF;
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: linear-gradient(135deg, #0D9488 0%, #1E40AF 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  .phone {
+    width: 390px;
+    min-height: 700px;
+    background: #F8FAFC;
+    border-radius: 40px;
+    overflow: hidden;
+    box-shadow: 0 40px 80px rgba(0,0,0,0.4);
+    position: relative;
+  }
+
+  /* SCREENS */
+  .screen { display: none; width: 100%; min-height: 700px; flex-direction: column; }
+  .screen.active { display: flex; }
+
+  /* HOME SCREEN */
+  #home {
+    background: linear-gradient(160deg, #0D9488, #1E40AF);
+    align-items: center;
+    justify-content: center;
+    padding: 40px 30px;
+    gap: 20px;
+  }
+
+  .logo-box {
+    width: 80px; height: 80px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 24px;
+    display: flex; align-items: center; justify-content: center;
+    backdrop-filter: blur(10px);
+    animation: float 3s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%,100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+
+  .logo-box svg { width: 44px; height: 44px; }
+
+  #home h1 {
+    color: white;
+    font-size: 36px;
+    font-weight: 900;
+    letter-spacing: -1px;
+  }
+
+  #home p {
+    color: rgba(255,255,255,0.75);
+    font-size: 14px;
+    text-align: center;
+    line-height: 1.5;
+  }
+
+  .mode-card {
+    width: 100%;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 20px;
+    padding: 20px;
+    backdrop-filter: blur(10px);
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+
+  .mode-card:hover { background: rgba(255,255,255,0.18); transform: scale(1.02); }
+
+  .mode-card .icon {
+    width: 44px; height: 44px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 12px;
+  }
+
+  .mode-card h3 { color: white; font-size: 18px; font-weight: 700; }
+  .mode-card p { color: rgba(255,255,255,0.7); font-size: 13px; margin-top: 4px; }
+
+  .mode-card .btns { display: flex; gap: 10px; margin-top: 14px; }
+
+  .btn-white {
+    flex: 1; padding: 10px;
+    background: white;
+    color: #0D9488;
+    border: none; border-radius: 12px;
+    font-size: 14px; font-weight: 600;
+    cursor: pointer; transition: all 0.2s;
+  }
+
+  .btn-white:hover { transform: scale(1.03); }
+
+  .btn-outline {
+    flex: 1; padding: 10px;
+    background: transparent;
+    color: white;
+    border: 1.5px solid rgba(255,255,255,0.5);
+    border-radius: 12px;
+    font-size: 14px; font-weight: 600;
+    cursor: pointer; transition: all 0.2s;
+  }
+
+  .btn-outline:hover { background: rgba(255,255,255,0.1); }
+
+  .secure-badge {
+    display: flex; align-items: center; gap: 8px;
+    color: rgba(255,255,255,0.6);
+    font-size: 12px;
+  }
+
+  /* FORM SCREENS */
+  .form-screen {
+    background: #F8FAFC;
+    padding: 0;
+  }
+
+  .form-header {
+    background: linear-gradient(135deg, #0D9488, #1E40AF);
+    padding: 50px 24px 30px;
+    color: white;
+  }
+
+  .back-btn {
+    background: rgba(255,255,255,0.2);
+    border: none;
+    color: white;
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 18px;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 16px;
+  }
+
+  .form-header h2 { font-size: 24px; font-weight: 800; }
+  .form-header p { font-size: 13px; opacity: 0.8; margin-top: 4px; }
+
+  .progress-bar {
+    display: flex; gap: 6px; margin-top: 16px;
+  }
+
+  .progress-bar .bar {
+    height: 4px; flex: 1; background: rgba(255,255,255,0.3);
+    border-radius: 4px; transition: background 0.3s;
+  }
+
+  .progress-bar .bar.done { background: white; }
+
+  .form-body { padding: 24px; flex: 1; }
+
+  .field-group { margin-bottom: 20px; }
+
+  .field-group label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #475569;
+    margin-bottom: 8px;
+  }
+
+  .field-group input {
+    width: 100%;
+    padding: 14px 16px;
+    background: white;
+    border: 1.5px solid #E2E8F0;
+    border-radius: 14px;
+    font-size: 15px;
+    color: #0F172A;
+    outline: none;
+    transition: border 0.2s;
+    font-family: 'Inter', sans-serif;
+  }
+
+  .field-group input:focus { border-color: #0D9488; }
+
+  .phone-input { display: flex; gap: 10px; }
+  .phone-code {
+    padding: 14px 16px;
+    background: white;
+    border: 1.5px solid #E2E8F0;
+    border-radius: 14px;
+    font-size: 15px;
+    color: #0F172A;
+    font-weight: 600;
+    min-width: 70px;
+    text-align: center;
+  }
+
+  .btn-primary {
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, #0D9488, #1E40AF);
+    color: white;
+    border: none;
+    border-radius: 16px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin-top: 10px;
+  }
+
+  .btn-primary:hover { opacity: 0.9; transform: scale(1.01); }
+
+  /* FACE SCAN SCREEN */
+  #face-scan, #merchant-face {
+    background: #F8FAFC;
+  }
+
+  .face-container {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 24px;
+  }
+
+  .face-circle {
+    width: 260px; height: 260px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #E0F2FE, #CCFBF1);
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+    box-shadow: 0 0 0 20px rgba(13,148,136,0.05);
+  }
+
+  .face-icon { font-size: 80px; }
+
+  .scan-ring {
+    position: absolute;
+    width: 100%; height: 100%;
+    border-radius: 50%;
+    border: 3px solid transparent;
+    border-top-color: #0D9488;
+    animation: spin 2s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* PIN SCREEN */
+  .pin-screen { background: #F8FAFC; padding: 0; }
+
+  .pin-dots {
+    display: flex; gap: 16px;
+    justify-content: center;
+    margin: 30px 0;
+  }
+
+  .pin-dot {
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    border: 2px solid #CBD5E1;
+    transition: all 0.2s;
+  }
+
+  .pin-dot.filled { background: #0D9488; border-color: #0D9488; transform: scale(1.1); }
+
+  .numpad {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    padding: 0 30px;
+    margin-top: 10px;
+  }
+
+  .num-btn {
+    aspect-ratio: 1;
+    background: white;
+    border: 1.5px solid #E2E8F0;
+    border-radius: 16px;
+    font-size: 22px;
+    font-weight: 600;
+    color: #0F172A;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+
+  .num-btn:active { transform: scale(0.93); background: #F1F5F9; }
+  .num-btn.del { font-size: 18px; color: #94A3B8; }
+  .num-btn.empty { background: transparent; border-color: transparent; cursor: default; }
+
+  /* SUCCESS SCREEN */
+  #success-screen {
+    background: #0F172A;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 24px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .confetti-container {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    pointer-events: none;
+    overflow: hidden;
+  }
+
+  .confetti-piece {
+    position: absolute;
+    width: 10px; height: 10px;
+    border-radius: 2px;
+    animation: confettiFall linear infinite;
+    top: -20px;
+  }
+
+  @keyframes confettiFall {
+    0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(800px) rotate(720deg); opacity: 0; }
+  }
+
+  .success-circle {
+    width: 130px; height: 130px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #10B981, #059669);
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+    animation: popIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+    box-shadow: 0 0 60px rgba(16,185,129,0.5);
+    margin-bottom: 24px;
+  }
+
+  @keyframes popIn {
+    0% { transform: scale(0) rotate(-180deg); opacity: 0; }
+    100% { transform: scale(1) rotate(0deg); opacity: 1; }
+  }
+
+  .success-circle::after {
+    content: '';
+    position: absolute;
+    width: 150px; height: 150px;
+    border-radius: 50%;
+    border: 2px solid rgba(16,185,129,0.3);
+    animation: pulse 2s ease-out infinite;
+  }
+
+  @keyframes pulse {
+    0% { transform: scale(0.9); opacity: 1; }
+    100% { transform: scale(1.4); opacity: 0; }
+  }
+
+  .check-icon { font-size: 56px; animation: checkPop 0.4s 0.5s both; }
+
+  @keyframes checkPop {
+    0% { transform: scale(0); }
+    100% { transform: scale(1); }
+  }
+
+  #success-screen h2 {
+    color: white;
+    font-size: 22px;
+    font-weight: 800;
+    animation: fadeUp 0.5s 0.8s both;
+  }
+
+  .amount-display {
+    font-size: 52px;
+    font-weight: 900;
+    color: #34D399;
+    letter-spacing: -2px;
+    animation: fadeUp 0.5s 1s both, countUp 1.5s 1s both;
+    margin: 8px 0;
+  }
+
+  @keyframes fadeUp {
+    0% { transform: translateY(20px); opacity: 0; }
+    100% { transform: translateY(0); opacity: 1; }
+  }
+
+  .receipt-card {
+    width: 100%;
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 20px;
+    padding: 20px;
+    animation: fadeUp 0.5s 1.2s both;
+    margin-top: 16px;
+  }
+
+  .receipt-row {
+    display: flex; justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .receipt-row:last-child { border-bottom: none; }
+
+  .receipt-row .label { color: rgba(255,255,255,0.5); font-size: 13px; }
+  .receipt-row .value { color: white; font-size: 13px; font-weight: 600; }
+  .receipt-row .value.green { color: #34D399; }
+
+  .success-btns {
+    display: flex; gap: 12px;
+    width: 100%;
+    margin-top: 20px;
+    animation: fadeUp 0.5s 1.4s both;
+  }
+
+  .btn-download {
+    flex: 1; padding: 14px;
+    background: rgba(255,255,255,0.1);
+    color: white;
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 14px;
+    font-size: 14px; font-weight: 600;
+    cursor: pointer;
+  }
+
+  .btn-home-success {
+    flex: 1; padding: 14px;
+    background: #10B981;
+    color: white;
+    border: none;
+    border-radius: 14px;
+    font-size: 14px; font-weight: 600;
+    cursor: pointer;
+  }
+
+  /* MERCHANT DASHBOARD */
+  #merchant-dash {
+    background: #F8FAFC;
+  }
+
+  .dash-header {
+    background: linear-gradient(135deg, #0D9488, #1E40AF);
+    padding: 50px 24px 24px;
+    color: white;
+  }
+
+  .dash-header h2 { font-size: 22px; font-weight: 800; }
+  .dash-header p { font-size: 13px; opacity: 0.8; }
+
+  .earnings-card {
+    background: rgba(255,255,255,0.15);
+    border-radius: 16px;
+    padding: 20px;
+    margin-top: 16px;
+  }
+
+  .earnings-card .amount { font-size: 36px; font-weight: 900; }
+  .earnings-card .label { font-size: 13px; opacity: 0.8; }
+
+  .earnings-stats { display: flex; gap: 16px; margin-top: 12px; }
+  .stat { flex: 1; background: rgba(255,255,255,0.1); border-radius: 12px; padding: 12px; }
+  .stat .num { font-size: 20px; font-weight: 800; }
+  .stat .lbl { font-size: 11px; opacity: 0.7; }
+
+  .dash-body { padding: 20px; }
+
+  .receive-btn {
+    width: 100%;
+    padding: 18px;
+    background: linear-gradient(135deg, #0D9488, #1E40AF);
+    color: white;
+    border: none;
+    border-radius: 16px;
+    font-size: 16px; font-weight: 700;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    margin-bottom: 24px;
+  }
+
+  .section-title {
+    font-size: 16px; font-weight: 700;
+    color: #0F172A; margin-bottom: 14px;
+  }
+
+  .tx-list { display: flex; flex-direction: column; gap: 10px; }
+
+  .tx-item {
+    background: white;
+    border-radius: 14px;
+    padding: 14px 16px;
+    display: flex; align-items: center; gap: 14px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  }
+
+  .tx-avatar {
+    width: 40px; height: 40px;
+    background: linear-gradient(135deg, #CCFBF1, #DBEAFE);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+  }
+
+  .tx-info { flex: 1; }
+  .tx-info .name { font-size: 14px; font-weight: 600; color: #0F172A; }
+  .tx-info .time { font-size: 12px; color: #94A3B8; }
+  .tx-amount { font-size: 15px; font-weight: 700; color: #10B981; }
+  .tx-status { font-size: 10px; color: #10B981; font-weight: 600; }
+
+  /* CUSTOMER DASH */
+  #customer-dash { background: #F8FAFC; }
+
+  .cust-header {
+    background: linear-gradient(135deg, #0D9488, #1E40AF);
+    padding: 50px 24px 24px;
+    color: white;
+  }
+
+  .cust-header h2 { font-size: 22px; font-weight: 800; }
+
+  .balance-card {
+    background: rgba(255,255,255,0.15);
+    border-radius: 16px;
+    padding: 20px;
+    margin-top: 16px;
+  }
+
+  .balance-card .bal { font-size: 36px; font-weight: 900; }
+  .balance-stats { display: flex; gap: 12px; margin-top: 12px; }
+  .bal-stat { flex: 1; background: rgba(255,255,255,0.1); border-radius: 12px; padding: 12px; }
+
+  .scan-btn {
+    width: 100%;
+    padding: 18px;
+    background: linear-gradient(135deg, #0D9488, #1E40AF);
+    color: white;
+    border: none;
+    border-radius: 16px;
+    font-size: 16px; font-weight: 700;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+
+  /* ALERT */
+  .alert {
+    position: fixed;
+    top: 20px; left: 50%; transform: translateX(-50%);
+    background: #EF4444;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 12px;
+    font-size: 14px; font-weight: 600;
+    z-index: 1000;
+    animation: slideDown 0.3s ease;
+  }
+
+  @keyframes slideDown {
+    from { top: -50px; opacity: 0; }
+    to { top: 20px; opacity: 1; }
+  }
+
+  .shop-id-badge {
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 10px;
+    padding: 8px 14px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.9);
+    display: inline-block;
+    margin-top: 8px;
+    font-weight: 600;
+  }
+</style>
+</head>
+<body>
+<div class="phone">
+
+  <!-- HOME -->
+  <div id="home" class="screen active">
+    <div class="logo-box">
+      <svg viewBox="0 0 24 24" fill="none">
+        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="white" opacity="0.3"/>
+        <circle cx="12" cy="9" r="3" fill="white"/>
+        <path d="M7 20.5C8.5 21.5 10.2 22 12 22s3.5-.5 5-1.5" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <h1>FacePay</h1>
+    <p>Government-grade biometric payments<br>for modern India 🇮🇳</p>
+
+    <div class="mode-card" style="margin-top:10px">
+      <div class="icon">👤</div>
+      <h3>Customer</h3>
+      <p>Pay with just a glance</p>
+      <div class="btns">
+        <button class="btn-white" onclick="showScreen('cust-login')">Login</button>
+        <button class="btn-outline" onclick="showScreen('cust-register')">Register</button>
+      </div>
+    </div>
+
+    <div class="mode-card">
+      <div class="icon">🏪</div>
+      <h3>Merchant</h3>
+      <p>Accept secure face payments</p>
+      <div class="btns">
+        <button class="btn-white" onclick="showScreen('merch-login')">Login</button>
+        <button class="btn-outline" onclick="showScreen('merch-register')">Register</button>
+      </div>
+    </div>
+
+    <div class="secure-badge">
+      <span>🛡️</span>
+      <span>Secured by end-to-end encryption</span>
+    </div>
+  </div>
+
+  <!-- CUSTOMER REGISTER -->
+  <div id="cust-register" class="screen form-screen">
+    <div class="form-header">
+      <button class="back-btn" onclick="showScreen('home')">←</button>
+      <h2>Register Customer</h2>
+      <p>Step <span id="cust-step-num">1</span> of 5</p>
+      <div class="progress-bar" id="cust-progress">
+        <div class="bar done"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+      </div>
+    </div>
+    <div class="form-body" id="cust-form-body">
+      <!-- Step 1: Personal Info -->
+      <div id="cust-s1">
+        <h3 style="font-size:20px;font-weight:800;color:#0F172A;margin-bottom:6px">Personal Info</h3>
+        <p style="color:#64748B;font-size:13px;margin-bottom:24px">Let's start with the basics.</p>
+        <div class="field-group">
+          <label>Full Name</label>
+          <input type="text" id="c-name" placeholder="As on Aadhaar card">
+        </div>
+        <div class="field-group">
+          <label>Phone Number</label>
+          <div class="phone-input">
+            <div class="phone-code">+91</div>
+            <input type="tel" id="c-phone" placeholder="9876543210" maxlength="10">
+          </div>
+        </div>
+        <button class="btn-primary" onclick="custNext(1)">Next →</button>
+      </div>
+
+      <!-- Step 2: Identity -->
+      <div id="cust-s2" style="display:none">
+        <h3 style="font-size:20px;font-weight:800;color:#0F172A;margin-bottom:6px">Identity Details</h3>
+        <p style="color:#64748B;font-size:13px;margin-bottom:24px">Verify your government IDs.</p>
+        <div class="field-group">
+          <label>Aadhaar Card Number</label>
+          <input type="text" id="c-aadhar" placeholder="XXXX-XXXX-XXXX" maxlength="14">
+        </div>
+        <div class="field-group">
+          <label>PAN Card Number</label>
+          <input type="text" id="c-pan" placeholder="ABCDE1234F" maxlength="10" style="text-transform:uppercase">
+        </div>
+        <button class="btn-primary" onclick="custNext(2)">Next →</button>
+      </div>
+
+      <!-- Step 3: Bank -->
+      <div id="cust-s3" style="display:none">
+        <h3 style="font-size:20px;font-weight:800;color:#0F172A;margin-bottom:6px">Bank Details</h3>
+        <p style="color:#64748B;font-size:13px;margin-bottom:24px">Link your bank account.</p>
+        <div class="field-group">
+          <label>Bank Account Number</label>
+          <input type="password" id="c-bank" placeholder="Enter account number">
+        </div>
+        <div class="field-group">
+          <label>IFSC Code</label>
+          <input type="text" id="c-ifsc" placeholder="SBIN0001234" style="text-transform:uppercase">
+        </div>
+        <button class="btn-primary" onclick="custNext(3)">Next →</button>
+      </div>
+
+      <!-- Step 4: Face -->
+      <div id="cust-s4" style="display:none">
+        <h3 style="font-size:20px;font-weight:800;color:#0F172A;margin-bottom:6px">Biometric Setup</h3>
+        <p style="color:#64748B;font-size:13px;margin-bottom:24px">Look directly at the camera.</p>
+        <div class="face-container" style="padding:20px 0">
+          <div class="face-circle" id="cust-face-circle">
+            <div class="scan-ring" id="cust-scan-ring" style="display:none"></div>
+            <span class="face-icon">😊</span>
+          </div>
+        </div>
+        <button class="btn-primary" id="cust-scan-btn" onclick="startFaceScan('cust')">Start Scan</button>
+      </div>
+
+      <!-- Step 5: PIN -->
+      <div id="cust-s5" style="display:none">
+        <h3 style="font-size:20px;font-weight:800;color:#0F172A;margin-bottom:6px;text-align:center">Create Payment PIN</h3>
+        <p style="color:#64748B;font-size:13px;margin-bottom:10px;text-align:center">Set a 4-digit PIN for security.</p>
+        <div class="pin-dots" id="cust-pin-dots">
+          <div class="pin-dot"></div><div class="pin-dot"></div>
+          <div class="pin-dot"></div><div class="pin-dot"></div>
+        </div>
+        <div class="numpad">
+          <button class="num-btn" onclick="pinInput('cust',1)">1</button>
+          <button class="num-btn" onclick="pinInput('cust',2)">2</button>
+          <button class="num-btn" onclick="pinInput('cust',3)">3</button>
+          <button class="num-btn" onclick="pinInput('cust',4)">4</button>
+          <button class="num-btn" onclick="pinInput('cust',5)">5</button>
+          <button class="num-btn" onclick="pinInput('cust',6)">6</button>
+          <button class="num-btn" onclick="pinInput('cust',7)">7</button>
+          <button class="num-btn" onclick="pinInput('cust',8)">8</button>
+          <button class="num-btn" onclick="pinInput('cust',9)">9</button>
+          <button class="num-btn empty"></button>
+          <button class="num-btn" onclick="pinInput('cust',0)">0</button>
+          <button class="num-btn del" onclick="pinDel('cust')">⌫</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CUSTOMER LOGIN -->
+  <div id="cust-login" class="screen form-screen">
+    <div class="form-header">
+      <button class="back-btn" onclick="showScreen('home')">←</button>
+      <h2>Customer Login</h2>
+      <p>Enter your details to continue</p>
+    </div>
+    <div class="form-body">
+      <div class="field-group">
+        <label>Phone Number</label>
+        <div class="phone-input">
+          <div class="phone-code">+91</div>
+          <input type="tel" id="cl-phone" placeholder="9876543210" maxlength="10">
+        </div>
+      </div>
+      <p style="text-align:center;color:#64748B;font-size:13px;margin-bottom:10px">Enter 4-Digit PIN</p>
+      <div class="pin-dots" id="cl-pin-dots">
+        <div class="pin-dot"></div><div class="pin-dot"></div>
+        <div class="pin-dot"></div><div class="pin-dot"></div>
+      </div>
+      <div class="numpad">
+        <button class="num-btn" onclick="pinInput('cl',1)">1</button>
+        <button class="num-btn" onclick="pinInput('cl',2)">2</button>
+        <button class="num-btn" onclick="pinInput('cl',3)">3</button>
+        <button class="num-btn" onclick="pinInput('cl',4)">4</button>
+        <button class="num-btn" onclick="pinInput('cl',5)">5</button>
+        <button class="num-btn" onclick="pinInput('cl',6)">6</button>
+        <button class="num-btn" onclick="pinInput('cl',7)">7</button>
+        <button class="num-btn" onclick="pinInput('cl',8)">8</button>
+        <button class="num-btn" onclick="pinInput('cl',9)">9</button>
+        <button class="num-btn empty"></button>
+        <button class="num-btn" onclick="pinInput('cl',0)">0</button>
+        <button class="num-btn del" onclick="pinDel('cl')">⌫</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MERCHANT REGISTER -->
+  <div id="merch-register" class="screen form-screen">
+    <div class="form-header">
+      <button class="back-btn" onclick="showScreen('home')">←</button>
+      <h2>Merchant Registration</h2>
+      <p>Step <span id="merch-step-num">1</span> of 5</p>
+      <div class="progress-bar" id="merch-progress">
+        <div class="bar done"></div>
+        <div class="bar"></div><div class="bar"></div>
+        <div class="bar"></div><div class="bar"></div>
+      </div>
+    </div>
+    <div class="form-body">
+      <div id="merch-s1">
+        <h3 style="font-size:20px;font-weight:800;color:#0F172A;margin-bottom:6px">Shop Info</h3>
+        <p style="color:#64748B;font-size:13px;margin-bottom:24px">Tell us about your business.</p>
+        <div class="field-group">
+          <label>Shop Name</label>
+          <input type="text" id="m-shop" placeholder="e.g. Sharma General Store">
+        </div>
+        <button class="btn-primary" onclick="merchNext(1)">Next →</button>
+      </div>
+
+      <div id="merch-s2" style="display:none">
+        <h3 style="font-size:20px;font-weight:800;color:#0F172A;margin-bottom:6px">Identity Details</h3>
+        <p style="color:#64748B;font-size:13px;margin-bottom:24px">Verify business credentials.</p>
+        <div class="field-group">
+          <label>Owner's Aadhaar Number</label>
+          <input type="text" id="m-aadhar" placeholder="XXXX-XXXX-XXXX" maxlength="14">
+        </div>
+        <div class="field-group">
+          <label>GST Number (Optional)</label>
+          <input type="text" id="m-gst" placeholder="22AAAAA0000A1Z5" style="text-transform:uppercase">
+        </div>
+        <button class="btn-primary" onclick="merchNext(2)">Next →</button>
+      </div>
+
+      <div id="merch-s3" style="display:none">
+        <h3 style="font-size:20px;font-weight:800;color:#0F172A;margin-bottom:6px">Bank Details</h3>
+        <p style="color:#64748B;font-size:13px;margin-bottom:24px">Link your bank account.</p>
+        <div class="field-group">
+          <label>Bank Account Number</label>
+          <input type="password" id="m-bank" placeholder="Enter account number">
+        </div>
+        <div class="field-group">
+          <label>IFSC Code</label>
+          <input type="text" id="m-ifsc" placeholder="SBIN0001234" style="text-transform:uppercase">
+        </div>
+        <button class="btn-primary" onclick="merchNext(3)">Next →</button>
+      </div>
+
+      <div id="merch-s4" style="display:none">
+        <h3 style="font-size:20px;font-weight:800;color:#0F172A;margin-bottom:6px">Biometric Setup</h3>
+        <p style="color:#64748B;font-size:13px;margin-bottom:24px">Register your face for security.</p>
+        <div class="face-container" style="padding:20px 0">
+          <div class="face-circle" id="merch-face-circle">
+            <div class="scan-ring" id="merch-scan-ring" style="display:none"></div>
+            <span class="face-icon">😊</span>
+          </div>
+        </div>
+        <button class="btn-primary" id="merch-scan-btn" onclick="startFaceScan('merch')">Start Scan</button>
+      </div>
+
+      <div id="merch-s5" style="display:none">
+        <h3 style="font-size:20px;font-weight:800;color:#0F172A;margin-bottom:6px;text-align:center">Create Admin PIN</h3>
+        <p style="color:#64748B;font-size:13px;margin-bottom:10px;text-align:center">Set a 4-digit PIN for terminal access.</p>
+        <div class="pin-dots" id="merch-pin-dots">
+          <div class="pin-dot"></div><div class="pin-dot"></div>
+          <div class="pin-dot"></div><div class="pin-dot"></div>
+        </div>
+        <div class="numpad">
+          <button class="num-btn" onclick="pinInput('merch',1)">1</button>
+          <button class="num-btn" onclick="pinInput('merch',2)">2</button>
+          <button class="num-btn" onclick="pinInput('merch',3)">3</button>
+          <button class="num-btn" onclick="pinInput('merch',4)">4</button>
+          <button class="num-btn" onclick="pinInput('merch',5)">5</button>
+          <button class="num-btn" onclick="pinInput('merch',6)">6</button>
+          <button class="num-btn" onclick="pinInput('merch',7)">7</button>
+          <button class="num-btn" onclick="pinInput('merch',8)">8</button>
+          <button class="num-btn" onclick="pinInput('merch',9)">9</button>
+          <button class="num-btn empty"></button>
+          <button class="num-btn" onclick="pinInput('merch',0)">0</button>
+          <button class="num-btn del" onclick="pinDel('merch')">⌫</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MERCHANT LOGIN -->
+  <div id="merch-login" class="screen form-screen">
+    <div class="form-header">
+      <button class="back-btn" onclick="showScreen('home')">←</button>
+      <h2>Merchant Login</h2>
+      <p>Enter your Shop ID and PIN</p>
+    </div>
+    <div class="form-body">
+      <div class="field-group">
+        <label>Shop ID</label>
+        <input type="text" id="ml-shopid" placeholder="FP-SHOP-XXXX" style="text-transform:uppercase">
+      </div>
+      <p style="text-align:center;color:#64748B;font-size:13px;margin:16px 0 10px">Enter 4-Digit PIN</p>
+      <div class="pin-dots" id="ml-pin-dots">
+        <div class="pin-dot"></div><div class="pin-dot"></div>
+        <div class="pin-dot"></div><div class="pin-dot"></div>
+      </div>
+      <div class="numpad">
+        <button class="num-btn" onclick="pinInput('ml',1)">1</button>
+        <button class="num-btn" onclick="pinInput('ml',2)">2</button>
+        <button class="num-btn" onclick="pinInput('ml',3)">3</button>
+        <button class="num-btn" onclick="pinInput('ml',4)">4</button>
+        <button class="num-btn" onclick="pinInput('ml',5)">5</button>
+        <button class="num-btn" onclick="pinInput('ml',6)">6</button>
+        <button class="num-btn" onclick="pinInput('ml',7)">7</button>
+        <button class="num-btn" onclick="pinInput('ml',8)">8</button>
+        <button class="num-btn" onclick="pinInput('ml',9)">9</button>
+        <button class="num-btn empty"></button>
+        <button class="num-btn" onclick="pinInput('ml',0)">0</button>
+        <button class="num-btn del" onclick="pinDel('ml')">⌫</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CUSTOMER DASHBOARD -->
+  <div id="customer-dash" class="screen">
+    <div class="cust-header">
+      <h2>Welcome, <span id="cust-name-display">Ashu</span>! 👋</h2>
+      <div class="balance-card">
+        <div class="label" style="color:rgba(255,255,255,0.7);font-size:12px">Total Spent</div>
+        <div class="bal">₹2,450.00</div>
+        <div class="balance-stats">
+          <div class="bal-stat">
+            <div class="num" style="font-size:16px;font-weight:800;color:white">₹85</div>
+            <div class="lbl" style="font-size:11px;color:rgba(255,255,255,0.7)">Today</div>
+          </div>
+          <div class="bal-stat">
+            <div class="num" style="font-size:16px;font-weight:800;color:white">6</div>
+            <div class="lbl" style="font-size:11px;color:rgba(255,255,255,0.7)">Transactions</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="dash-body">
+      <button class="scan-btn" onclick="showScreen('pay-scan')">
+        <span>😊</span> Scan to Pay
+      </button>
+      <div style="margin-top:24px">
+        <div class="section-title">Recent Activity</div>
+        <div class="tx-list">
+          <div class="tx-item">
+            <div class="tx-avatar">🛒</div>
+            <div class="tx-info">
+              <div class="name">Sharma General Store</div>
+              <div class="time">Today, 2:30 PM</div>
+            </div>
+            <div style="text-align:right">
+              <div class="tx-amount" style="color:#EF4444">-₹350</div>
+              <div class="tx-status" style="color:#10B981">✓ Paid</div>
+            </div>
+          </div>
+          <div class="tx-item">
+            <div class="tx-avatar">☕</div>
+            <div class="tx-info">
+              <div class="name">Cafe Coffee Day</div>
+              <div class="time">Today, 10:15 AM</div>
+            </div>
+            <div style="text-align:right">
+              <div class="tx-amount" style="color:#EF4444">-₹180</div>
+              <div class="tx-status" style="color:#10B981">✓ Paid</div>
+            </div>
+          </div>
+          <div class="tx-item">
+            <div class="tx-avatar">⛽</div>
+            <div class="tx-info">
+              <div class="name">HP Petrol Pump</div>
+              <div class="time">Yesterday</div>
+            </div>
+            <div style="text-align:right">
+              <div class="tx-amount" style="color:#EF4444">-₹500</div>
+              <div class="tx-status" style="color:#10B981">✓ Paid</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAY SCAN -->
+  <div id="pay-scan" class="screen form-screen">
+    <div class="form-header">
+      <button class="back-btn" onclick="showScreen('customer-dash')">←</button>
+      <h2>Face ID Payment</h2>
+      <p>Look directly at the camera</p>
+    </div>
+    <div class="face-container">
+      <div class="face-circle" id="pay-face-circle">
+        <div class="scan-ring" id="pay-scan-ring" style="display:none"></div>
+        <span class="face-icon" id="pay-face-icon">😊</span>
+      </div>
+    </div>
+    <div style="padding:0 24px 30px">
+      <div class="field-group">
+        <label>Amount (₹)</label>
+        <input type="number" id="pay-amount" placeholder="Enter amount" style="font-size:24px;font-weight:700;text-align:center">
+      </div>
+      <button class="btn-primary" onclick="startPayScan()">Scan & Pay</button>
+    </div>
+  </div>
+
+  <!-- PAY PIN -->
+  <div id="pay-pin" class="screen form-screen">
+    <div class="form-header">
+      <button class="back-btn" onclick="showScreen('pay-scan')">←</button>
+      <h2>Confirm Payment</h2>
+      <p>Enter PIN for ₹<span id="pay-amount-display">0</span></p>
+    </div>
+    <div class="form-body" style="display:flex;flex-direction:column;align-items:center;padding-top:30px">
+      <div class="pin-dots" id="pp-pin-dots">
+        <div class="pin-dot"></div><div class="pin-dot"></div>
+        <div class="pin-dot"></div><div class="pin-dot"></div>
+      </div>
+      <div class="numpad" style="width:100%">
+        <button class="num-btn" onclick="pinInput('pp',1)">1</button>
+        <button class="num-btn" onclick="pinInput('pp',2)">2</button>
+        <button class="num-btn" onclick="pinInput('pp',3)">3</button>
+        <button class="num-btn" onclick="pinInput('pp',4)">4</button>
+        <button class="num-btn" onclick="pinInput('pp',5)">5</button>
+        <button class="num-btn" onclick="pinInput('pp',6)">6</button>
+        <button class="num-btn" onclick="pinInput('pp',7)">7</button>
+        <button class="num-btn" onclick="pinInput('pp',8)">8</button>
+        <button class="num-btn" onclick="pinInput('pp',9)">9</button>
+        <button class="num-btn empty"></button>
+        <button class="num-btn" onclick="pinInput('pp',0)">0</button>
+        <button class="num-btn del" onclick="pinDel('pp')">⌫</button>
+      </div>
+      <button style="background:none;border:none;color:#94A3B8;font-size:14px;margin-top:20px;cursor:pointer" onclick="showScreen('pay-scan')">Cancel payment</button>
+    </div>
+  </div>
+
+  <!-- SUCCESS SCREEN -->
+  <div id="success-screen" class="screen">
+    <div class="confetti-container" id="confetti-box"></div>
+    <div class="success-circle">
+      <span class="check-icon">✓</span>
+    </div>
+    <h2>Payment Successful!</h2>
+    <div class="amount-display" id="success-amount">₹350</div>
+
+    <div class="receipt-card">
+      <div class="receipt-row">
+        <span class="label">Customer</span>
+        <span class="value">A**** K****</span>
+      </div>
+      <div class="receipt-row">
+        <span class="label">Phone</span>
+        <span class="value">+91 ****7890</span>
+      </div>
+      <div class="receipt-row">
+        <span class="label">Bank</span>
+        <span class="value">SBI ****4321</span>
+      </div>
+      <div class="receipt-row">
+        <span class="label">Merchant</span>
+        <span class="value">Sharma Store</span>
+      </div>
+      <div class="receipt-row">
+        <span class="label">Date & Time</span>
+        <span class="value" id="success-time">Jul 24, 2:30 PM</span>
+      </div>
+      <div class="receipt-row">
+        <span class="label">Transaction ID</span>
+        <span class="value" id="success-txid">FP-2026-XXXXX</span>
+      </div>
+      <div class="receipt-row">
+        <span class="label">Status</span>
+        <span class="value green">✓ Completed</span>
+      </div>
+    </div>
+
+    <div class="success-btns">
+      <button class="btn-download">⬇ Download</button>
+      <button class="btn-home-success" onclick="showScreen('customer-dash')">Done ✓</button>
+    </div>
+  </div>
+
+  <!-- MERCHANT DASHBOARD -->
+  <div id="merchant-dash" class="screen">
+    <div class="dash-header">
+      <h2>Merchant Console 🏪</h2>
+      <p id="merch-shop-display">FP-SHOP-2341</p>
+      <div class="earnings-card">
+        <div class="label" style="color:rgba(255,255,255,0.7);font-size:12px">Today's Earnings</div>
+        <div class="amount">₹12,450</div>
+        <div class="earnings-stats">
+          <div class="stat">
+            <div class="num">24</div>
+            <div class="lbl">Sales</div>
+          </div>
+          <div class="stat">
+            <div class="num">₹519</div>
+            <div class="lbl">Avg Ticket</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="dash-body">
+      <button class="receive-btn" onclick="showScreen('merch-scan')">
+        😊 Receive Payment
+      </button>
+      <div class="section-title">Recent Sales</div>
+      <div class="tx-list">
+        <div class="tx-item">
+          <div class="tx-avatar">👤</div>
+          <div class="tx-info">
+            <div class="name">R**** K****</div>
+            <div class="time">Today, 2:30 PM</div>
+          </div>
+          <div style="text-align:right">
+            <div class="tx-amount">+₹350</div>
+            <div class="tx-status">✓ PAID</div>
+          </div>
+        </div>
+        <div class="tx-item">
+          <div class="tx-avatar">👤</div>
+          <div class="tx-info">
+            <div class="name">S**** P****</div>
+            <div class="time">Today, 1:15 PM</div>
+          </div>
+          <div style="text-align:right">
+            <div class="tx-amount">+₹180</div>
+            <div class="tx-status">✓ PAID</div>
+          </div>
+        </div>
+        <div class="tx-item">
+          <div class="tx-avatar">👤</div>
+          <div class="tx-info">
+            <div class="name">A**** M****</div>
+            <div class="time">Today, 11:00 AM</div>
+          </div>
+          <div style="text-align:right">
+            <div class="tx-amount">+₹500</div>
+            <div class="tx-status">✓ PAID</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MERCHANT SCAN -->
+  <div id="merch-scan" class="screen form-screen">
+    <div class="form-header">
+      <button class="back-btn" onclick="showScreen('merchant-dash')">←</button>
+      <h2>Receive Payment</h2>
+      <p>Scan customer's face</p>
+    </div>
+    <div class="face-container">
+      <div class="face-circle" id="merch-pay-circle">
+        <div class="scan-ring" id="merch-pay-ring" style="display:none"></div>
+        <span class="face-icon" id="merch-pay-icon">😊</span>
+      </div>
+    </div>
+    <div style="padding:0 24px 30px">
+      <div class="field-group">
+        <label>Amount to Receive (₹)</label>
+        <input type="number" id="merch-amount" placeholder="Enter amount" style="font-size:24px;font-weight:700;text-align:center">
+      </div>
+      <button class="btn-primary" onclick="startMerchScan()">Scan Customer Face</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const pins = {};
+const custStep = { val: 1 };
+const merchStep = { val: 1 };
+let custPin = '';
+let registeredPin = '';
+let merchantPin = '';
+let regMerchPin = '';
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const el = document.getElementById(id);
+  if (el) el.classList.add('active');
+  // Reset pins when switching
+  if (['cust-login','merch-login','pay-pin'].includes(id)) {
+    const key = id === 'cust-login' ? 'cl' : id === 'merch-login' ? 'ml' : 'pp';
+    pins[key] = '';
+    updateDots(key);
+  }
+}
+
+function updateDots(key) {
+  const val = pins[key] || '';
+  const dots = document.querySelectorAll(`#${key}-pin-dots .pin-dot`);
+  dots.forEach((d, i) => d.classList.toggle('filled', i < val.length));
+}
+
+function pinInput(key, num) {
+  if (!pins[key]) pins[key] = '';
+  if (pins[key].length >= 4) return;
+  pins[key] += num;
+  updateDots(key);
+
+  if (pins[key].length === 4) {
+    setTimeout(() => handlePinComplete(key), 300);
+  }
+}
+
+function pinDel(key) {
+  if (!pins[key]) return;
+  pins[key] = pins[key].slice(0, -1);
+  updateDots(key);
+}
+
+function handlePinComplete(key) {
+  if (key === 'cust') {
+    // Registration PIN
+    registeredPin = pins[key];
+    pins[key] = '';
+    updateDots(key);
+    completeRegistration('customer');
+  } else if (key === 'merch') {
+    regMerchPin = pins[key];
+    pins[key] = '';
+    updateDots(key);
+    completeRegistration('merchant');
+  } else if (key === 'cl') {
+    // Customer login — accept any PIN for demo
+    const phone = document.getElementById('cl-phone').value;
+    if (phone.length < 10) { showAlert('Enter valid phone number!'); pins[key]=''; updateDots(key); return; }
+    const name = phone.slice(-4);
+    document.getElementById('cust-name-display').textContent = 'Ashu';
+    showScreen('customer-dash');
+  } else if (key === 'ml') {
+    const shopId = document.getElementById('ml-shopid').value;
+    if (!shopId) { showAlert('Enter Shop ID!'); pins[key]=''; updateDots(key); return; }
+    document.getElementById('merch-shop-display').textContent = shopId.toUpperCase();
+    showScreen('merchant-dash');
+  } else if (key === 'pp') {
+    // Payment PIN — any 4 digits accepted for demo
+    const amount = document.getElementById('pay-amount').value || '350';
+    triggerSuccess(amount);
+  }
+}
+
+function custNext(step) {
+  if (step === 1) {
+    const name = document.getElementById('c-name').value;
+    const phone = document.getElementById('c-phone').value;
+    if (!name || phone.length < 10) { showAlert('Fill all fields correctly!'); return; }
+  } else if (step === 2) {
+    const aadhar = document.getElementById('c-aadhar').value.replace(/-/g,'');
+    if (aadhar.length < 12) { showAlert('Enter valid 12-digit Aadhaar!'); return; }
+  } else if (step === 3) {
+    const bank = document.getElementById('c-bank').value;
+    if (!bank) { showAlert('Enter bank account number!'); return; }
+  }
+  document.getElementById(`cust-s${step}`).style.display = 'none';
+  document.getElementById(`cust-s${step+1}`).style.display = 'block';
+  custStep.val = step + 1;
+  document.getElementById('cust-step-num').textContent = step + 1;
+  updateProgress('cust-progress', step + 1, 5);
+}
+
+function merchNext(step) {
+  if (step === 1) {
+    const shop = document.getElementById('m-shop').value;
+    if (!shop) { showAlert('Enter shop name!'); return; }
+  }
+  document.getElementById(`merch-s${step}`).style.display = 'none';
+  document.getElementById(`merch-s${step+1}`).style.display = 'block';
+  merchStep.val = step + 1;
+  document.getElementById('merch-step-num').textContent = step + 1;
+  updateProgress('merch-progress', step + 1, 5);
+}
+
+function updateProgress(id, step, total) {
+  const bars = document.querySelectorAll(`#${id} .bar`);
+  bars.forEach((b, i) => b.classList.toggle('done', i < step));
+}
+
+function startFaceScan(type) {
+  const ring = document.getElementById(`${type}-scan-ring`);
+  const btn = document.getElementById(`${type}-scan-btn`);
+  const circle = document.getElementById(`${type}-face-circle`);
+  ring.style.display = 'block';
+  btn.textContent = 'Scanning...';
+  btn.disabled = true;
+  circle.style.background = 'linear-gradient(135deg, #CCFBF1, #A7F3D0)';
+  setTimeout(() => {
+    ring.style.display = 'none';
+    btn.textContent = '✓ Face Registered!';
+    btn.style.background = 'linear-gradient(135deg, #10B981, #059669)';
+    document.getElementById(`${type}-s4`).style.display = 'none';
+    document.getElementById(`${type}-s5`).style.display = 'block';
+    const totalSteps = 5;
+    document.getElementById(`${type === 'cust' ? 'cust' : 'merch'}-step-num`).textContent = 5;
+    updateProgress(`${type === 'cust' ? 'cust' : 'merch'}-progress`, 5, 5);
+  }, 2500);
+}
+
+function startPayScan() {
+  const amount = document.getElementById('pay-amount').value;
+  if (!amount || amount <= 0) { showAlert('Enter a valid amount!'); return; }
+  const ring = document.getElementById('pay-scan-ring');
+  const icon = document.getElementById('pay-face-icon');
+  ring.style.display = 'block';
+  icon.textContent = '🔍';
+  setTimeout(() => {
+    ring.style.display = 'none';
+    icon.textContent = '✅';
+    document.getElementById('pay-amount-display').textContent = amount;
+    setTimeout(() => showScreen('pay-pin'), 800);
+  }, 2000);
+}
+
+function startMerchScan() {
+  const amount = document.getElementById('merch-amount').value;
+  if (!amount || amount <= 0) { showAlert('Enter amount!'); return; }
+  const ring = document.getElementById('merch-pay-ring');
+  const icon = document.getElementById('merch-pay-icon');
+  ring.style.display = 'block';
+  icon.textContent = '🔍';
+  setTimeout(() => {
+    ring.style.display = 'none';
+    icon.textContent = '✅';
+    setTimeout(() => triggerSuccess(amount), 800);
+  }, 2000);
+}
+
+function triggerSuccess(amount) {
+  document.getElementById('success-amount').textContent = '₹' + Number(amount).toLocaleString('en-IN');
+  const now = new Date();
+  document.getElementById('success-time').textContent = now.toLocaleDateString('en-IN', {month:'short',day:'numeric'}) + ', ' + now.toLocaleTimeString('en-IN', {hour:'2-digit',minute:'2-digit'});
+  document.getElementById('success-txid').textContent = 'FP-' + Date.now().toString().slice(-8);
+  showScreen('success-screen');
+  createConfetti();
+}
+
+function createConfetti() {
+  const box = document.getElementById('confetti-box');
+  box.innerHTML = '';
+  const colors = ['#10B981','#3B82F6','#F59E0B','#EF4444','#8B5CF6','#06B6D4','#34D399'];
+  for (let i = 0; i < 60; i++) {
+    const c = document.createElement('div');
+    c.className = 'confetti-piece';
+    c.style.left = Math.random() * 100 + '%';
+    c.style.background = colors[Math.floor(Math.random() * colors.length)];
+    c.style.width = (Math.random() * 8 + 6) + 'px';
+    c.style.height = (Math.random() * 8 + 6) + 'px';
+    c.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+    c.style.animationDuration = (Math.random() * 2 + 2) + 's';
+    c.style.animationDelay = (Math.random() * 1.5) + 's';
+    box.appendChild(c);
+  }
+}
+
+function completeRegistration(type) {
+  if (type === 'customer') {
+    const name = document.getElementById('c-name').value || 'Customer';
+    document.getElementById('cust-name-display').textContent = name.split(' ')[0];
+    showScreen('customer-dash');
+  } else {
+    const shopName = document.getElementById('m-shop').value || 'My Store';
+    const shopId = 'FP-SHOP-' + Math.floor(1000 + Math.random() * 9000);
+    document.getElementById('merch-shop-display').textContent = shopId;
+    showScreen('merchant-dash');
+  }
+}
+
+function showAlert(msg) {
+  const existing = document.querySelector('.alert');
+  if (existing) existing.remove();
+  const a = document.createElement('div');
+  a.className = 'alert';
+  a.textContent = msg;
+  document.body.appendChild(a);
+  setTimeout(() => a.remove(), 3000);
+}
+
+// Auto-format Aadhaar
+document.addEventListener('input', function(e) {
+  if (e.target.id === 'c-aadhar' || e.target.id === 'm-aadhar') {
+    let v = e.target.value.replace(/\D/g,'').slice(0,12);
+    e.target.value = v.replace(/(\d{4})(?=\d)/g,'$1-');
+  }
+});
+</script>
+</body>
+</html>
